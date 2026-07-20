@@ -489,13 +489,13 @@ class DefaultViewManager {
         this.container.scrollWidth - this.container.clientWidth,
       )
       const epsilon = 1
+      const currentPage = Math.round(
+        this.container.scrollLeft / this.layout.delta,
+      )
 
       if (this.container.scrollLeft < maxScrollLeft - epsilon) {
         this.scrollTo(
-          Math.min(
-            this.container.scrollLeft + this.layout.delta,
-            maxScrollLeft,
-          ),
+          Math.min((currentPage + 1) * this.layout.delta, maxScrollLeft),
           0,
           true,
         )
@@ -596,8 +596,9 @@ class DefaultViewManager {
 
       left = this.container.scrollLeft
 
-      if (left > 0) {
-        this.scrollBy(-this.layout.delta, 0, true)
+      const currentPage = Math.round(left / this.layout.delta)
+      if (currentPage > 0) {
+        this.scrollTo((currentPage - 1) * this.layout.delta, 0, true)
       } else {
         prev = this.views.first().section.prev()
       }
@@ -853,9 +854,13 @@ class DefaultViewManager {
       )
 
       let totalPages = this.layout.count(width).pages
-      let startPage = Math.floor(start / this.layout.pageWidth)
+      // Treat sub-pixel and border rounding near a page boundary as that page.
+      const positionEpsilon = 1
+      let startPage = Math.floor(
+        (start + positionEpsilon) / this.layout.pageWidth,
+      )
       let pages = []
-      let endPage = Math.floor(end / this.layout.pageWidth)
+      let endPage = Math.floor((end + positionEpsilon) / this.layout.pageWidth)
 
       // start page should not be negative
       if (startPage < 0) {
