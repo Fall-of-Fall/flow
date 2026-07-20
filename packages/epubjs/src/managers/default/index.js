@@ -481,13 +481,24 @@ class DefaultViewManager {
     ) {
       this.scrollLeft = this.container.scrollLeft
 
-      left =
-        this.container.scrollLeft +
-        this.container.offsetWidth +
-        this.layout.delta
+      // `offsetWidth` includes borders while `scrollWidth` and `clientWidth`
+      // describe the inner scrollable area. Mixing them can make the last
+      // page unreachable because of rounding or border-width differences.
+      const maxScrollLeft = Math.max(
+        0,
+        this.container.scrollWidth - this.container.clientWidth,
+      )
+      const epsilon = 1
 
-      if (left <= this.container.scrollWidth) {
-        this.scrollBy(this.layout.delta, 0, true)
+      if (this.container.scrollLeft < maxScrollLeft - epsilon) {
+        this.scrollTo(
+          Math.min(
+            this.container.scrollLeft + this.layout.delta,
+            maxScrollLeft,
+          ),
+          0,
+          true,
+        )
       } else {
         next = this.views.last().section.next()
       }
@@ -675,7 +686,10 @@ class DefaultViewManager {
                 }
               } else {
                 this.scrollTo(
-                  this.container.scrollWidth - this.layout.delta,
+                  Math.max(
+                    0,
+                    this.container.scrollWidth - this.container.clientWidth,
+                  ),
                   0,
                   true,
                 )
